@@ -2,6 +2,7 @@
 class Dao {
     private $db;
     private $excecao;
+    private $ordem;
     
     public function __destruct() {
         $this->db = null;
@@ -66,7 +67,10 @@ class Dao {
                 $sql .= "$key = '$value' AND";
             }
         }
-        $sql .= " excluido = '0'";
+        $sql .= " excluido = '0' ";
+        if($this->getOrdem()){
+            $sql .= "ORDER BY ".$this->getOrdem().";";
+        }
         Return $sql;
     }
     private function getInsert(Model $model){
@@ -87,8 +91,17 @@ class Dao {
         return $this->execute($sql, $model);
     }
     private function getUpdate(Model $model){
+        date_default_timezone_set("America/Sao_Paulo");
+        $model->setModificado(date("Y-m-d H:i:s"));
+        $sql = "UPDATE ".$model->getTabela()." SET ";
+        foreach($this->getParams($model) as $key => $item){
+            $sql .= str_replace(":","",$key)." = ";
+            $sql .= "$key,";
+        }
+        $sql .= "modificado = '".$model->getModificado()."'";
+        $sql .= " WHERE id = ".$model->getId().";";
         
-        return $result;
+        return $this->execute($sql, $model);
     }
     private function execute($sql,Model $model=null){
         $stmt = $this->getDb()->prepare($sql);
@@ -140,5 +153,11 @@ class Dao {
     }
     public function setExcecao(array $excecao) {
         $this->excecao = $excecao;
+    }
+    public function getOrdem() {
+        return $this->ordem;
+    }
+    public function setOrdem($ordem) {
+        $this->ordem = $ordem;
     }
 }

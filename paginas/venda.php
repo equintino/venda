@@ -35,11 +35,9 @@
     
     $model->setTabela("tb_venda");
     $model->setArray($venda);
-    
+        
     $search->setTabela("tb_produto");
     $ltProd = $dao->encontre($search);
-    //$venda->setProduto($produto);
-    //$dao->grava($model);
     
 ?>
 <div class="container mt-5">

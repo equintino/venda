@@ -1,8 +1,8 @@
 <meta charset="utf8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel='stylesheet' href='../web/css/bootstrap.css' type='text/css' />
+<link rel='stylesheet' href='../web/css/bootstrap.min.css' type='text/css' />
 <script type='text/javascript' src='../web/js/jquery-3.3.1.min.js'></script>
-<script type='text/javascript' src='../web/js/bootstrap.js'></script>
+<script type='text/javascript' src='../web/js/bootstrap.min.js'></script>
 <?php
 $origem = array_key_exists('origem',$_GET)?$_GET['origem']:null;
 require_once '../config/Config.php';
@@ -51,6 +51,7 @@ elseif($origem=="cad_prod"):
     $produto->setVlrPromo(converte($_POST['vlr_promo']));
     $produto->setDescricao($_POST['descricao']);
     
+    $model->setId($_POST['codProd']);
     $model->setArray($produto);
     $dao->setExcecao(array('tipo'=>'varchar(50) NOT NULL UNIQUE KEY'));
     grava($dao->grava($model));
@@ -86,7 +87,9 @@ elseif($origem=="cad_venda"):
             }
         }
     }
-echo '<script>alert("Registro de Vendas Realizado");history.go(-1)</script>';    
+echo '<script>alert("Registro de Vendas Realizado");history.go(-1)</script>';
+elseif($origem=="venda_sobra"):
+    echo '<pre>';print_r($_POST);
 endif;
 function grava($dados){
     if($dados): ?>

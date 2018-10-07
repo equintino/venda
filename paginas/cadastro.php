@@ -21,6 +21,10 @@
             }
         });
         $(".dinheiro").mask("#.##0,00",{reverse: true});
+        $("table#ltProd tbody tr").click(function(){
+            var tipoProd=$(this).find("td[nome=tipo]").text();
+            window.location.assign("../web/index.php?pagina=cadastro&act=cad_prod&tipoProd="+tipoProd);
+        });
     });
 </script>
 <?php $act = array_key_exists('act',$_GET)?$_GET['act']:null; ?>
@@ -67,46 +71,71 @@
                 <button class="btn btn-primary btn-sm" style="float: right">Enviar</button>
     </form>
 </div>
-<?php elseif($act=='cad_prod'): ?>
+<?php 
+    elseif($act=='cad_prod'): 
+    $dao = new Dao();
+    $produto = new Produto();
+    $search = new CriterioBusca();
+    $tipoProd = array_key_exists('tipoProd',$_GET)?$_GET['tipoProd']:null;
+    if(isset($tipoProd)){
+        $edicao = " <font color=red>(modo edição)</font>";
+        $search->setTabela("tb_produto");
+        $search->setArray(array("tipo"=>$tipoProd));
+        $produtoDb=$dao->encontre($search);
+        foreach($produtoDb as $prodDb){
+            $produto->setNome($prodDb->getArray()['nome']);
+            $produto->setDescricao($prodDb->getArray()['descricao']);
+            $produto->setTipo($prodDb->getArray()['tipo']);
+            $produto->setCusto($prodDb->getArray()['custo']);
+            $produto->setPreco($prodDb->getArray()['preco']);
+            $produto->setQtdPromo($prodDb->getArray()['qtdpromo']);
+            $produto->setVlrPromo($prodDb->getArray()['vlrpromo']);
+            $produto->setCodProd($prodDb->getArray()['id']);
+        }
+    }else{
+        $edicao=null;
+    }
+        ?>
 <div class="container mt-5">
-    <h2>Cadastro de Produtos</h2>
+    <h2>Cadastro de Produtos<?= $edicao ?></h2>
     <form id="cad_prod" action="../paginas/add.php?origem=cad_prod" method="POST" class="form-horizontal">
         <div class="border border-secundary p-3 bg-light">
         <div class="form-group form-row">
             <div class="col-md-4">
             <label for="nome" class="col-form-label">Nome do Produto</label>
-            <input type="text" class="form-control" id="nome" name="nome" placeholder="Digite o nome do produto" autofocus required/>
+            <input type="text" class="form-control" id="nome" name="nome" placeholder="Digite o nome do produto" autofocus required value="<?= $produto->getNome() ?>" />
             </div>
             <div class="col-md">
             <label for="descricao" class="col-form-label">Descrição</label>
-            <input type="text" class="form-control" id="descricao" name="descricao" placeholder="Descreva o produto" />
+            <input type="text" class="form-control" id="descricao" name="descricao" placeholder="Descreva o produto" value="<?= $produto->getDescricao() ?>" />
             </div>
             <div class="col-md-3">
                 <label for="tipo" class="col-form-label">Tipo</label>
-                <input type="text" class="form-control" id="tipo" name="tipo" placeholder="Digite o tipo do produto" required/>
+                <input type="text" class="form-control" id="tipo" name="tipo" placeholder="Digite o tipo do produto" required value="<?= $produto->getTipo() ?>"/>
             </div>
         </div><!-- form row -->
         <div class="form-group form-row">
             <div class="col-md">
                 <label for="custo" class="col-form-label">Preço de Custo</label>
-                <input type="text" class="form-control dinheiro" id="custo" name="custo" placeholder="Digite o preço de custo do produto" required/>
+                <input type="text" class="form-control dinheiro" id="custo" name="custo" placeholder="Digite o preço de custo do produto" required value="<?= $produto->getCusto() ?>"/>
             </div>
             <div class="col-md">
                 <label for="preco" class="col-form-label">Preço de Venda</label>
-                <input type="text" class="form-control dinheiro" id="preco" name="preco" placeholder="Digite o valor de venda do produto" required/>
+                <input type="text" class="form-control dinheiro" id="preco" name="preco" placeholder="Digite o valor de venda do produto" required value="<?= $produto->getPreco() ?>"/>
             </div>
         </div><!-- form row -->
         <div class="form-group form-row">
             <div class="col-md">
                 <label for="qtd_promo" class="col-form-label">Promoção(Qtd)</label>
-                <input type="number" class="form-control" id="qtd_promo" name="qtd_promo" placeholder="Quantidade de produto na promoção" required/>
+                <input type="number" class="form-control" id="qtd_promo" name="qtd_promo" placeholder="Quantidade de produto na promoção" required value="<?= $produto->getQtdPromo() ?>"/>
             </div>
             <div class="col-md">
                 <label for="vlr_promo" class="col-form-label">Preço na Promoção</label>
-                <input type="text" class="form-control dinheiro" id="vlr_promo" name="vlr_promo" placeholder="Digite o valor da promoção" required/>
+                <input type="text" class="form-control dinheiro" id="vlr_promo" name="vlr_promo" placeholder="Digite o valor da promoção" required value="<?= $produto->getVlrPromo() ?>"/>
             </div>
         </div><!-- form row -->
         </div><!-- border -->
+        <input type="hidden" name="codProd" value="<?= $produto->getCodProd() ?>" />
         <button class="btn btn-primary" style="float: right">Salvar</button>        
     </form>
 </div>
@@ -119,8 +148,8 @@
     $dados=$dao->encontre($search);    
 ?>
 <div class='container mt-5'>
-<h2>Lista de Produtos</h2>
-<table class='table table-bordered table-hover table-striped table-responsive-sm'>
+    <h2>Lista de Produtos <font color="red" size="2px">*ao clicar em um produto você será direcionado para o modo de edição.</font></h2>
+<table class='table table-bordered table-hover table-striped table-responsive-sm' id="ltProd">
     <thead class='bg-primary' style='color:white;text-shadow: 1px 1px 1px gray'>
     <tr>
         <th scope="col">PRODUTO</th>
@@ -139,7 +168,7 @@
     <tr>
         <td scope='row'><?= mb_strtoupper($dado->getArray()['nome'],'utf8') ?></td>
         <td><?= mb_strtoupper($dado->getArray()['descricao'],'utf8') ?></td>
-        <td><?= mb_strtoupper($dado->getArray()['tipo'],'utf8') ?></td>
+        <td nome="tipo"><?= mb_strtoupper($dado->getArray()['tipo'],'utf8') ?></td>
         <td><?= number_format($dado->getArray()['custo'],'2',',','.') ?></td>
         <td><?= number_format($dado->getArray()['preco'],'2',',','.') ?></td>
         <td><?= $dado->getArray()['qtdpromo'] ?> X <?= intval($dado->getArray()['vlrpromo']) ?></td>

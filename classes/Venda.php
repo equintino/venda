@@ -6,6 +6,9 @@ class Venda {
     private $qtd;
     private $idProd;
    
+    public function somaQtd($qtd){
+        $this->setQtd($this->getQtd()+$qtd);
+    }
     public function getProduto() {
         return $this->produto;
     }
